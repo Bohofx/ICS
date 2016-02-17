@@ -1,27 +1,22 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
 
 public class SerializeTransform : SerializeComponent<Transform>
 {
-	[System.Serializable]
-	struct TransformData
+	public override void Serialize(JSONNode inNode)
 	{
-		public Vector3    Position;
-		public Quaternion Rotation;
-		public Vector3    LocalScale;
+		base.Serialize(inNode);
+		inNode["Position"] = component.position.ToJsonString();
+		inNode["Rotation"] = component.rotation.ToJsonString();
+		inNode["LocalScale"] = component.localScale.ToJsonString();
 	}
 
-	public override object Serialize()
+	public override void Deserialize(JSONNode inNode)
 	{
-		TransformData transformData = new TransformData() { Position = component.position, Rotation = component.rotation, LocalScale = component.localScale };
-		return transformData;
-	}
-
-	public override void DeserializeFromJson(string inJson)
-	{
-		TransformData transformData = JsonUtility.FromJson<TransformData>(inJson);
-		component.position = transformData.Position;
-		component.rotation = transformData.Rotation;
-		component.localScale = transformData.LocalScale;
+		base.Deserialize(inNode);
+		component.position = inNode["Position"].ToString().Vector3FromJsonString();
+		component.rotation = inNode["Rotation"].ToString().QuaternionFromJsonString();
+		component.localScale = inNode["LocalScale"].ToString().Vector3FromJsonString();
 	}
 }

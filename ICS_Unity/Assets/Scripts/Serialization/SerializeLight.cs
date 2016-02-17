@@ -1,33 +1,26 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
 
 public class SerializeLight : SerializeComponent<Light>
 {
-	[System.Serializable]
-	struct LightData
+	public override void Serialize(JSONNode inNode)
 	{
-		public float Intensity;
-		public Color Color;
-	}
-
-	public override object Serialize()
-	{
-		LightData lightData = new LightData();
+		base.Serialize(inNode);
 		if(component)
 		{
-			lightData.Color = component.color;
-			lightData.Intensity = component.intensity;
+			inNode["Intensity"] = component.intensity.ToString();
+			inNode["Color"] = component.color.ToJsonString();
 		}
-		return lightData;
 	}
 
-	public override void DeserializeFromJson(string inJson)
+	public override void Deserialize(JSONNode inNode)
 	{
+		base.Deserialize(inNode);
 		if(component)
 		{
-			LightData lightData = JsonUtility.FromJson<LightData>(inJson);
-			component.intensity = lightData.Intensity;
-			component.color = lightData.Color;
+			component.intensity = inNode["Intensity"].AsFloat;
+			component.color = inNode["Color"].ToString().ColorFromJsonString();
 		}
 	}
 }

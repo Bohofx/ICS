@@ -1,30 +1,24 @@
 ﻿using UnityEngine;
 using System.Collections;
+using SimpleJSON;
 
 public class SerializeMeshRenderer : SerializeComponent<MeshRenderer>
 {
-	[System.Serializable]
-	struct MeshRendererData
+	public override void Serialize(JSONNode inNode)
 	{
-		public Color Color;
-	}
-
-	public override object Serialize()
-	{
-		MeshRendererData meshRendererData = new MeshRendererData();
+		base.Serialize(inNode);
 		if(component)
 		{
-			meshRendererData.Color = component.sharedMaterial.color;
+			inNode["Color"] = component.sharedMaterial.color.ToJsonString();
 		}
-		return meshRendererData;
 	}
 
-	public override void DeserializeFromJson(string inJson)
+	public override void Deserialize(JSONNode inNode)
 	{
+		base.Deserialize(inNode);
 		if(component)
 		{
-			MeshRendererData meshRendererData = JsonUtility.FromJson<MeshRendererData>(inJson);
-			component.sharedMaterial.color = meshRendererData.Color;
+			component.sharedMaterial.color = inNode["Color"].ToString().ColorFromJsonString();
 		}
 	}
 }
