@@ -3,32 +3,24 @@ using System.Collections;
 
 public class EditorCamera : MonoBehaviour
 {
+	[SerializeField]
+	float _lookSensitivity = 90f;
 
-	/*
-	EXTENDED FLYCAM
-		Desi Quintans (CowfaceGames.com), 17 August 2012.
-		Based on FlyThrough.js by Slin (http://wiki.unity3d.com/index.php/FlyThrough), 17 May 2011.
- 
-	LICENSE
-		Free as in speech, and free as in beer.
- 
-	FEATURES
-		WASD/Arrows:    Movement
-				  Q:    Climb
-				  E:    Drop
-					  Shift:    Move faster
-					Control:    Move slower
-						End:    Toggle cursor locking to screen (you can also press Ctrl+P to toggle play mode on and off).
-	*/
+	[SerializeField]
+	float _fastMoveSpeed = 10f;
+	
+	[SerializeField]
+	float _normalMoveSpeed = 5f;
 
-	public float cameraSensitivity = 90;
-	public float climbSpeed = 4;
-	public float normalMoveSpeed = 10;
-	public float slowMoveFactor = 0.25f;
-	public float fastMoveFactor = 3;
+	float rotationX = 0.0f;
+	float rotationY = 0.0f;
 
-	private float rotationX = 0.0f;
-	private float rotationY = 0.0f;
+	enum CameraRotationMode
+	{
+		PivotAboutSelf,
+		PivotAboutFocal,
+	}
+	CameraRotationMode _cameraRotationMode = CameraRotationMode.PivotAboutSelf;
 
 	void Start()
 	{
@@ -37,36 +29,35 @@ public class EditorCamera : MonoBehaviour
 
 	void Update()
 	{
-		rotationX += Input.GetAxis("Mouse X") * cameraSensitivity * Time.deltaTime;
-		rotationY += Input.GetAxis("Mouse Y") * cameraSensitivity * Time.deltaTime;
-		rotationY = Mathf.Clamp(rotationY, -90, 90);
+		bool inputAlt = Input.GetKey(KeyCode.LeftAlt) && Input.GetKey(KeyCode.RightAlt);
+		bool inputPivotSelf = Input.GetMouseButton(1);
+		bool inputPivotFocal = Input.GetMouseButton(0) && inputAlt;
+		bool anyRotationKeyPressed = (inputAlt && inputPivotFocal) || (inputPivotSelf);
 
-		transform.localRotation = Quaternion.AngleAxis(rotationX, Vector3.up);
-		transform.localRotation *= Quaternion.AngleAxis(rotationY, Vector3.left);
-
-		if(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+		if(_cameraRotationMode == CameraRotationMode.PivotAboutFocal && Input.GetMouseButton(1))
 		{
-			transform.position += transform.forward * (normalMoveSpeed * fastMoveFactor) * Input.GetAxis("Vertical") * Time.deltaTime;
-			transform.position += transform.right * (normalMoveSpeed * fastMoveFactor) * Input.GetAxis("Horizontal") * Time.deltaTime;
-		}
-		else if(Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
-		{
-			transform.position += transform.forward * (normalMoveSpeed * slowMoveFactor) * Input.GetAxis("Vertical") * Time.deltaTime;
-			transform.position += transform.right * (normalMoveSpeed * slowMoveFactor) * Input.GetAxis("Horizontal") * Time.deltaTime;
-		}
-		else
-		{
-			transform.position += transform.forward * normalMoveSpeed * Input.GetAxis("Vertical") * Time.deltaTime;
-			transform.position += transform.right * normalMoveSpeed * Input.GetAxis("Horizontal") * Time.deltaTime;
+			_cameraRotationMode = CameraRotationMode.PivotAboutSelf;
 		}
 
+		if(anyRotationKeyPressed)
+		{
+			rotationX += Input.GetAxis("Mouse X") * _lookSensitivity * Time.deltaTime;
+			rotationY += Input.GetAxis("Mouse Y") * _lookSensitivity * Time.deltaTime;
+			rotationY = Mathf.Clamp(rotationY, -90, 90);
 
-		if(Input.GetKey(KeyCode.Q)) { transform.position += transform.up * climbSpeed * Time.deltaTime; }
-		if(Input.GetKey(KeyCode.E)) { transform.position -= transform.up * climbSpeed * Time.deltaTime; }
+			transform.localRotation = Quaternion.AngleAxis(rotationX, Vector3.up);
+			transform.localRotation *= Quaternion.AngleAxis(rotationY, Vector3.left);
+		}
+
+		bool isUsingFastScroll = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
+
+		float moveSpeed = isUsingFastScroll ? _fastMoveSpeed : _normalMoveSpeed;
+		transform.position += transform.forward * moveSpeed * Input.GetAxis("Vertical") * Time.deltaTime;
+		transform.position += transform.right * moveSpeed * Input.GetAxis("Horizontal") * Time.deltaTime;
 
 		if(Input.GetKeyDown(KeyCode.End))
 		{
-			Screen.lockCursor = (Screen.lockCursor == false) ? true : false;
+			Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
 		}
 	}
 }

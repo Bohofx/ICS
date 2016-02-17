@@ -1,14 +1,14 @@
 using UnityEngine;
 using System;
-using System.IO;
 using System.Text.RegularExpressions;
+using SystemPath = System.IO.Path;
 using UObject = UnityEngine.Object;
 
 public static class UtilitiesString
 {
 	public static string RemoveExtension(this string inString)
 	{
-		return inString.RemoveSuffix(Path.GetExtension(inString));
+		return inString.RemoveSuffix(SystemPath.GetExtension(inString));
 	}
 
 	public static string RemoveSuffix(this string inString, string inSuffix)

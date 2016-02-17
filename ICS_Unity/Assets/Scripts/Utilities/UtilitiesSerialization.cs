@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEditor;
+using System;
 using UnityEngine;
 
 public static class UtilitiesSerialization

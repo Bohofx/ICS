@@ -17,6 +17,8 @@ public class PrefabInstance : MonoBehaviour
 	{
 		_instanceGuid = System.Guid.NewGuid().ToString();
 		Environment.GetInstance().AddInstance(this);
+
+		gameObject.AddComponent<PickableObject>();
 	}
 
 	protected virtual void OnDestroy()
@@ -37,7 +39,6 @@ public class PrefabInstance : MonoBehaviour
 		SerializeComponentBase[] serializedComponents = gameObject.GetComponentsInChildren<SerializeComponentBase>();
 		for(int i = 0; i < serializedComponents.Length; ++i)
 		{
-			string nodeName = serializedComponents[i].name + "_" + serializedComponents[i].GetType();
 			inNode["SerializedComponents"][i] = new JSONClass();
 			serializedComponents[i].Serialize(inNode["SerializedComponents"][i]);
 		}

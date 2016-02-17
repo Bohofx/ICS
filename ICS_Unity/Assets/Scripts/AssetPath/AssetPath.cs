@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UObject = UnityEngine.Object;
 using System.Collections.Generic;
@@ -11,9 +11,7 @@ public struct AssetPath
 	public string guid
 	{
 		get { return _guid; }
-#if UNITY_EDITOR
 		set { _guid = value; }
-#endif
 	}
 
 	[SerializeField]
@@ -21,9 +19,7 @@ public struct AssetPath
 	public string path
 	{
 		get { return _path; }
-#if UNITY_EDITOR
 		set { _path = value; }
-#endif
 	}
 	
 	[SerializeField]
@@ -31,9 +27,7 @@ public struct AssetPath
 	public string resx
 	{
 		get { return _resx; }
-#if UNITY_EDITOR
 		set { _resx = value; }
-#endif
 	}
 
 	[SerializeField]
@@ -41,9 +35,7 @@ public struct AssetPath
 	public string name
 	{
 		get { return _name; }
-#if UNITY_EDITOR
 		set { _name = value; }
-#endif
 	}
 
 	[SerializeField]
@@ -51,9 +43,7 @@ public struct AssetPath
 	public UObject uobj
 	{
 		get { return _uobj; }
-#if UNITY_EDITOR
 		set { _uobj = value; }
-#endif
 	}
 
 	public bool IsValid()
