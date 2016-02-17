@@ -24,7 +24,8 @@ public class EditorCamera : MonoBehaviour
 
 	void Start()
 	{
-		//Cursor.lockState = CursorLockMode.Locked;
+		if(Application.isPlayer)
+			Cursor.lockState = CursorLockMode.Locked;
 	}
 
 	void Update()

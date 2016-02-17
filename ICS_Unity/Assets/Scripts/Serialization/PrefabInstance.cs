@@ -18,7 +18,7 @@ public class PrefabInstance : MonoBehaviour
 		_instanceGuid = System.Guid.NewGuid().ToString();
 		Environment.GetInstance().AddInstance(this);
 
-		gameObject.AddComponent<PickableObject>();
+		gameObject.GetOrAddComponent<PickableObject>();
 	}
 
 	protected virtual void OnDestroy()
