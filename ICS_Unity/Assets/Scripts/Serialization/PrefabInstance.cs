@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using SimpleJSON;
 
@@ -53,8 +53,8 @@ public class PrefabInstance : MonoBehaviour
 			JSONNode serializedComponent = inNode["SerializedComponents"][i];
 			
 			string path = serializedComponent["Path"];
-			
-			Transform sourceGameObject = transform.FindChild(path);
+
+			Transform sourceGameObject = string.IsNullOrEmpty(path) ? transform : transform.FindChild(path);
 			if(sourceGameObject)
 			{
 				string type = serializedComponent["Type"];
@@ -62,7 +62,7 @@ public class PrefabInstance : MonoBehaviour
 				SerializeComponentBase component = sourceGameObject.GetComponent(type) as SerializeComponentBase;
 				if(component)
 				{
-					component.Deserialize(inNode);
+					component.Deserialize(serializedComponent);
 				}
 			}
 		}

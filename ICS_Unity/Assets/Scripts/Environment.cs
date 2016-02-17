@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.IO;
 using System.Text;
 using System.Collections;
@@ -74,9 +74,9 @@ public class Environment : Singleton<Environment>
 	{
 		AssetPath prefabSource = new AssetPath()
 		{
-			name = inNode["ResourceName"].ToString().Replace("\"", string.Empty),
-			resx = inNode["ResourcePath"].ToString().Replace("\"", string.Empty),
-			guid = inNode["ResourceGUID"].ToString().Replace("\"", string.Empty),
+			name = inNode["ResourceName"].Value,
+			resx = inNode["ResourcePath"].Value,
+			guid = inNode["ResourceGUID"].Value,
 		};
 		
 		GameObject resource = prefabSource.Load<GameObject>();

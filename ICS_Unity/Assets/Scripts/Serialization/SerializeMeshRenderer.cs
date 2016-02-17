@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using SimpleJSON;
 
@@ -18,7 +18,7 @@ public class SerializeMeshRenderer : SerializeComponent<MeshRenderer>
 		base.Deserialize(inNode);
 		if(component)
 		{
-			component.sharedMaterial.color = inNode["Color"].ToString().ColorFromJsonString();
+			component.sharedMaterial.color = inNode["Color"].Value.ColorFromJsonString();
 		}
 	}
 }

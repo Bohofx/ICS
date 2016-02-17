@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using SimpleJSON;
 
@@ -15,8 +15,8 @@ public class SerializeTransform : SerializeComponent<Transform>
 	public override void Deserialize(JSONNode inNode)
 	{
 		base.Deserialize(inNode);
-		component.position = inNode["Position"].ToString().Vector3FromJsonString();
-		component.rotation = inNode["Rotation"].ToString().QuaternionFromJsonString();
-		component.localScale = inNode["LocalScale"].ToString().Vector3FromJsonString();
+		component.position = inNode["Position"].Value.Vector3FromJsonString();
+		component.rotation = inNode["Rotation"].Value.QuaternionFromJsonString();
+		component.localScale = inNode["LocalScale"].Value.Vector3FromJsonString();
 	}
 }

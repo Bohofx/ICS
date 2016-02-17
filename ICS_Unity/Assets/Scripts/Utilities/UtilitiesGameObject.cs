@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -8,7 +8,7 @@ public static class UtilitiesGameObject
 	{
 		if(inComponent)
 		{
-			string path = inComponent.name;
+			string path = string.Empty;
 			if(inRelativeTo == null || inComponent.transform != inRelativeTo)
 			{
 				while(inComponent && inComponent.transform.parent)

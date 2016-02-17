@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 using SimpleJSON;
 
@@ -20,7 +20,7 @@ public class SerializeLight : SerializeComponent<Light>
 		if(component)
 		{
 			component.intensity = inNode["Intensity"].AsFloat;
-			component.color = inNode["Color"].ToString().ColorFromJsonString();
+			component.color = inNode["Color"].Value.ColorFromJsonString();
 		}
 	}
 }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
 public class EditorCamera : MonoBehaviour
@@ -32,7 +32,7 @@ public class EditorCamera : MonoBehaviour
 
 	void Start()
 	{
-		Cursor.lockState = CursorLockMode.Locked;
+		//Cursor.lockState = CursorLockMode.Locked;
 	}
 
 	void Update()
