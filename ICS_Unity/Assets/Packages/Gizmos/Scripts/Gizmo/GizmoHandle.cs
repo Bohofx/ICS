@@ -169,9 +169,9 @@ public class GizmoHandle : MonoBehaviour
         Type = type;
         if (Axis != GizmoAxis.Center)
         {
-            PositionCap.SetActiveRecursively(type == GizmoTypes.Position);
-            RotationCap.SetActiveRecursively(type == GizmoTypes.Rotation);
-            ScaleCap.SetActiveRecursively(type == GizmoTypes.Scale);
+            PositionCap.SetActive(type == GizmoTypes.Position);
+            RotationCap.SetActive(type == GizmoTypes.Rotation);
+            ScaleCap.SetActive(type == GizmoTypes.Scale);
         }
     }
 

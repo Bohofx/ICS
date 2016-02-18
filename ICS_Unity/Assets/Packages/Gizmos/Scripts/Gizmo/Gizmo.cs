@@ -164,15 +164,14 @@ public class Gizmo : MonoBehaviour
     }
     public void Show()
     {
-        gameObject.SetActiveRecursively(true);
+        gameObject.SetActive(true);
         SetType(Type);
         Visible = true;
     }
 
     public void Hide()
     {
-        gameObject.SetActiveRecursively(false);
-        gameObject.active = true;
+        gameObject.SetActive(false);
         Visible = false;
     }
 

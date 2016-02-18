@@ -3,18 +3,32 @@ using System.Collections;
 
 public class HUD : Singleton<HUD>
 {
-	[SerializeField]
 	public ColorPicker ColorPicker;
-
 	public LensManager<LensHandle, bool> ShowColorPicker;
 
-	void Awake()
+	public PanelFileBrowser PanelFileBrowser;
+
+	protected override void Awake()
 	{
+		base.Awake();
+
+		ColorPicker.gameObject.SetActive(false);
 		ShowColorPicker = new LensManager<LensHandle, bool>((requests) => 
 		{
 			ColorPicker.gameObject.SetActive(requests.Count > 0);
 			return requests.Count > 0;
 		});
-		ColorPicker.gameObject.SetActive(false);
+
+		PanelFileBrowser.gameObject.SetActive(false);
+	}
+
+	public void OnClickLoad()
+	{
+		PanelFileBrowser.gameObject.SetActive(true);
+	}
+
+	public void OnClickSave()
+	{
+		PanelFileBrowser.gameObject.SetActive(true);
 	}
 }
