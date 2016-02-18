@@ -67,7 +67,7 @@ public class PickableObject : MonoBehaviour
 
 	void OnMouseDown()
 	{
-		ToolsManager.GetInstance().AddSelected(this);
+		Gizmo.GetInstance().SelectObject(this);
 	}
 
 	public void SetSelected(bool inState)

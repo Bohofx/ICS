@@ -1,193 +1,250 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
-public enum GizmoTypes { Position, Rotation, Scale }
-public enum GizmoControl { Horizontal, Vertical, Both }
-public enum GizmoAxis { Center, X, Y, Z }
+public enum GizmoTools
+{ Position, Rotation, Scale }
 
-public class Gizmo : MonoBehaviour 
+public enum GizmoControl
+{ Horizontal, Vertical, Both }
+
+public enum GizmoAxis
+{ Center, X, Y, Z }
+
+public class Gizmo : Singleton<Gizmo>
 {
-    public GizmoHandle AxisCenter;
-    public GizmoHandle AxisX;
-    public GizmoHandle AxisY;
-    public GizmoHandle AxisZ;
-    public GizmoTypes Type;
-    public List<Transform> SelectedObjects;
-    public Vector3 Center;
-    public bool Visible;
-    public float DefaultDistance = 3.2f;
-    public float ScaleFactor = 0.2f;
-    
-    private Vector3 localScale;
-    private Transform _transform;
+	[SerializeField]
+	GizmoHandle _axisCenter;
 
-    void Awake()
-    {
-        Visible = false;
-        SetType(GizmoTypes.Position);
-        Hide();
-        // set the axis start type
-        AxisCenter.Axis = GizmoAxis.Center;
-        AxisCenter.Gizmo = this;
-        AxisX.Axis = GizmoAxis.X;
-        AxisX.Gizmo = this;
-        AxisY.Axis = GizmoAxis.Y;
-        AxisY.Gizmo = this;
-        AxisZ.Axis = GizmoAxis.Z;
-        AxisZ.Gizmo = this;
+	[SerializeField]
+	GizmoHandle _axisX;
 
-        _transform = transform;
-        localScale = _transform.localScale;
-        SelectedObjects = new List<Transform>();
-    }
+	[SerializeField]
+	GizmoHandle _axisY;
+
+	[SerializeField]
+	GizmoHandle _axisZ;
+
+	[SerializeField]
+	float _defaultDistance = 10f;
 	
-	// Update is called once per frame
-	void Update () 
-    {
-        if (Visible)
-        {
-            if (Input.GetKeyDown(KeyCode.Alpha1))
-            {
-                SetType(GizmoTypes.Position);
-            }
-            if (Input.GetKeyDown(KeyCode.Alpha2))
-            {
-                SetType(GizmoTypes.Rotation);
-            }
-            if (Input.GetKeyDown(KeyCode.Alpha3))
-            {
-                SetType(GizmoTypes.Scale);
-            }
-        }
-        if (SelectedObjects.Count > 0)
-        {
-            // Scale based on distance from the camera
-            var distance = Vector3.Distance(_transform.position, Camera.main.transform.position);
-            var scale = (distance - DefaultDistance) * ScaleFactor;
-            _transform.localScale = new Vector3(localScale.x + scale, localScale.y + scale, localScale.z + scale);
+	[SerializeField]
+	float _scaleFactor = 0.1f;
 
-            // Move the gizmo to the center of our parent
-            UpdateCenter();
-            _transform.position = Center;
-        }
-	}
+	public List<Transform> Selected;
+	public int SelectedCount
+	{ get { return Selected.Count; } }
 
-    public void SetType(GizmoTypes type)
-    {
-        // set the type of all the axis
-        Type = type;
-        AxisCenter.SetType(type);
-        AxisX.SetType(type);
-        AxisY.SetType(type);
-        AxisZ.SetType(type);
-    }
-    public void ClearSelection()
-    {
-        SelectedObjects.Clear();
-        Center = Vector3.zero;
-    }
-    public void UpdateCenter()
-    {
-        if (SelectedObjects.Count > 1)
-        {
-            var vectors = new Vector3[SelectedObjects.Count];
-            for (int i = 0; i < SelectedObjects.Count; i++)
-            {
-                vectors[i] = SelectedObjects[i].position;
-            }
-            Center = CenterOfVectors(vectors);
-        }
-        else
-        {
-            Center = SelectedObjects[0].position;
-        }
-    }
-    public void SelectObject(Transform parent)
-    {
-        if (!SelectedObjects.Contains(parent))
-            SelectedObjects.Add(parent);
-        UpdateCenter();
-    }
+	GizmoTools _activeTool = GizmoTools.Position;
 
-	public void DeselectObject(Transform parent)
+	Vector3 _selectionCenter;
+
+	Vector3 _localScale;
+
+	protected override void Awake()
 	{
-		if(SelectedObjects.Contains(parent))
-			SelectedObjects.Remove(parent);
-		UpdateCenter();
+		base.Awake();
+		
+		SetType(GizmoTools.Position);
+		Hide();
+
+		_axisCenter.Axis = GizmoAxis.Center;
+		_axisCenter.Gizmo = this;
+		_axisX.Axis = GizmoAxis.X;
+		_axisX.Gizmo = this;
+		_axisY.Axis = GizmoAxis.Y;
+		_axisY.Gizmo = this;
+		_axisZ.Axis = GizmoAxis.Z;
+		_axisZ.Gizmo = this;
+
+		_localScale = transform.localScale;
+		
+		Selected = new List<Transform>();
 	}
 
-    public void ActivateAxis(GizmoAxis axis)
-    {
-        switch (axis)
-        {
-            case GizmoAxis.Center:
-                AxisCenter.SetActive(true);
-                break;
-            case GizmoAxis.X:
-                AxisX.SetActive(true);
-                break;
-            case GizmoAxis.Y:
-                AxisY.SetActive(true);
-                break;
-            case GizmoAxis.Z:
-                AxisZ.SetActive(true);
-                break;
-        }
-        SetType(Type);
-    }
-    public void DeactivateAxis(GizmoAxis axis)
-    {
-        switch (axis)
-        {
-            case GizmoAxis.Center:
-                AxisCenter.SetActive(false);
-                break;
-            case GizmoAxis.X:
-                AxisX.SetActive(false);
-                break;
-            case GizmoAxis.Y:
-                AxisY.SetActive(false);
-                break;
-            case GizmoAxis.Z:
-                AxisZ.SetActive(false);
-                break;
-        }
-        SetType(Type);
-    }
-    public void DeactivateHandles()
-    {
-        AxisCenter.SetActive(false);
-        AxisX.SetActive(false);
-        AxisY.SetActive(false);
-        AxisZ.SetActive(false);
-    }
-    public void Show()
-    {
-        gameObject.SetActive(true);
-        SetType(Type);
-        Visible = true;
-    }
+	void Update()
+	{
+		if(Input.GetKeyDown(KeyCode.W))
+		{
+			SetType(GizmoTools.Position);
+		}
+		if(Input.GetKeyDown(KeyCode.E))
+		{
+			SetType(GizmoTools.Rotation);
+		}
+		if(Input.GetKeyDown(KeyCode.R))
+		{
+			SetType(GizmoTools.Scale);
+		}
+		if(Input.GetKeyDown(KeyCode.Escape))
+		{
+			ClearSelection();
+		}
+		if(Input.GetMouseButtonDown(0))
+		{
+			Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 
-    public void Hide()
-    {
-        gameObject.SetActive(false);
-        Visible = false;
-    }
+			if(!EventSystem.current.IsPointerOverGameObject())
+			{
+				int roomBoundsMask = ~(1 << LayerMask.NameToLayer("RoomBounds"));
+				if(!Physics.Raycast(ray, Mathf.Infinity, roomBoundsMask))
+					ClearSelection();
+			}
+		}
 
-    public Vector3 CenterOfVectors(Vector3[] vectors)
-    {
-        Vector3 sum = Vector3.zero;
-        if (vectors == null || vectors.Length == 0)
-        {
-            return sum;
-        }
+		if(SelectedCount > 0)
+		{
+			// Scale based on distance from the camera.
+			var distance = Vector3.Distance(transform.position, Camera.main.transform.position);
+			var scale = (distance - _defaultDistance) * _scaleFactor;
+			transform.localScale = new Vector3(_localScale.x + scale, _localScale.y + scale, _localScale.z + scale);
 
-        foreach (Vector3 vec in vectors)
-        {
-            sum += vec;
-        }
-        return sum / vectors.Length;
-    }
+			// Move the gizmo to the center of our parent.
+			UpdateCenterAndVisibility();
+			transform.position = _selectionCenter;
+		}
+	}
 
+	void SetType(GizmoTools type)
+	{
+		_activeTool = type;
+		_axisCenter.SetType(type);
+		_axisX.SetType(type);
+		_axisY.SetType(type);
+		_axisZ.SetType(type);
+	}
+
+	public void ClearSelection()
+	{
+		while(Selected.Count > 0)
+		{
+			PickableObject pickable = Selected[0].GetComponent<PickableObject>();
+			pickable.SetSelected(false);
+			Selected.RemoveAt(0);
+		}
+
+		UpdateCenterAndVisibility();
+	}
+
+	void UpdateCenterAndVisibility()
+	{
+		if(Selected.Count > 1)
+		{
+			var vectors = new Vector3[Selected.Count];
+			for(int i = 0; i < Selected.Count; i++)
+			{
+				vectors[i] = Selected[i].position;
+			}
+			_selectionCenter = CenterOfVectors(vectors);
+		}
+		else if(Selected.Count == 1)
+		{
+			_selectionCenter = Selected[0].position;
+		}
+
+		if(Selected.Count > 0)
+			Show();
+		else
+			Hide();
+	}
+
+	public void SelectObject(PickableObject inPickable)
+	{
+		bool inputShiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);
+		if(!inputShiftDown)
+		{
+			ClearSelection();
+		}
+
+		if(!Selected.Contains(inPickable.transform))
+			Selected.Add(inPickable.transform);
+		inPickable.SetSelected(true);
+		
+		UpdateCenterAndVisibility();
+	}
+
+	public void DeselectObject(PickableObject inPickable)
+	{
+		if(Selected.Contains(inPickable.transform))
+			Selected.Remove(inPickable.transform);
+		inPickable.SetSelected(false);
+
+		UpdateCenterAndVisibility();
+	}
+
+	public void ActivateAxis(GizmoAxis axis)
+	{
+		switch(axis)
+		{
+			case GizmoAxis.Center:
+				_axisCenter.SetActive(true);
+				break;
+			case GizmoAxis.X:
+				_axisX.SetActive(true);
+				break;
+			case GizmoAxis.Y:
+				_axisY.SetActive(true);
+				break;
+			case GizmoAxis.Z:
+				_axisZ.SetActive(true);
+				break;
+		}
+		SetType(_activeTool);
+	}
+
+	public void DeactivateAxis(GizmoAxis axis)
+	{
+		switch(axis)
+		{
+			case GizmoAxis.Center:
+				_axisCenter.SetActive(false);
+				break;
+			case GizmoAxis.X:
+				_axisX.SetActive(false);
+				break;
+			case GizmoAxis.Y:
+				_axisY.SetActive(false);
+				break;
+			case GizmoAxis.Z:
+				_axisZ.SetActive(false);
+				break;
+		}
+		SetType(_activeTool);
+	}
+
+	public void DeactivateHandles()
+	{
+		_axisCenter.SetActive(false);
+		_axisX.SetActive(false);
+		_axisY.SetActive(false);
+		_axisZ.SetActive(false);
+	}
+
+	void Show()
+	{
+		gameObject.SetActive(true);
+		SetType(_activeTool);
+	}
+
+	void Hide()
+	{
+		gameObject.SetActive(false);
+	}
+
+	Vector3 CenterOfVectors(Vector3[] vectors)
+	{
+		Vector3 sum = Vector3.zero;
+		if(vectors == null || vectors.Length == 0)
+		{
+			return sum;
+		}
+
+		foreach(Vector3 vec in vectors)
+		{
+			sum += vec;
+		}
+		return sum / vectors.Length;
+	}
 }

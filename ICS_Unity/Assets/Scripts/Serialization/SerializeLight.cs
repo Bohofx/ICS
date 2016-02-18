@@ -9,6 +9,12 @@ public class SerializeLight : SerializeComponent<Light>
 		base.OnSelectionStateChanged(inState);
 		if(inState)
 		{
+			// If nothing else is selected, initialize the color picker to the color of the light.
+			if(Gizmo.GetInstance().SelectedCount == 1 && component)
+			{
+				HUD.GetInstance().ColorPicker.CurrentColor = component.color;
+			}
+
 			HUD.GetInstance().ShowColorPicker.AddRequest(new LensHandle(this));
 			HUD.GetInstance().ColorPicker.onValueChanged.AddListener(UpdateColor);
 

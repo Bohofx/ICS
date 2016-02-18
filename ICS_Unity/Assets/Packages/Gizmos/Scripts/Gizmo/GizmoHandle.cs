@@ -5,7 +5,7 @@ public class GizmoHandle : MonoBehaviour
 {
     public Gizmo Gizmo;
     public GizmoControl Control;
-    public GizmoTypes Type;
+    public GizmoTools Type;
     public GameObject PositionCap;
     public GameObject RotationCap;
     public GameObject ScaleCap;
@@ -56,27 +56,27 @@ public class GizmoHandle : MonoBehaviour
 
             switch (Type)
             {
-                case GizmoTypes.Position:
+                case GizmoTools.Position:
                     delta *= MoveSensitivity;
                     horz *= MoveSensitivity;
                     vert *= MoveSensitivity;
                     switch (Axis)
                     {
                         case GizmoAxis.X:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.Translate(Vector3.right * delta, Space.World);
                             break;
                         case GizmoAxis.Y:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.Translate(Vector3.up * delta, Space.World);
                             break;
                         case GizmoAxis.Z:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.Translate(Vector3.forward * delta, Space.World);
                             break;
                         case GizmoAxis.Center:
                             // Based on the camera position we need to either move X horizontal or vertical / vice versa with Z
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                             {
                                 obj.Translate(Vector3.right * horz, Space.World);
                                 obj.Translate(Vector3.forward * vert, Space.World);
@@ -85,47 +85,47 @@ public class GizmoHandle : MonoBehaviour
                     }
                     break;
 
-                case GizmoTypes.Scale:
+                case GizmoTools.Scale:
                     delta *= ScaleSensitivity;
                     switch (Axis)
                     {
                         case GizmoAxis.X:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.localScale = new Vector3(obj.localScale.x + delta, obj.localScale.y, obj.localScale.z);
                             break;
                         case GizmoAxis.Y:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.localScale = new Vector3(obj.localScale.x, obj.localScale.y + delta, obj.localScale.z);
                             break;
                         case GizmoAxis.Z:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.localScale = new Vector3(obj.localScale.x, obj.localScale.y, obj.localScale.z + delta);
                             break;
                         case GizmoAxis.Center:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.localScale = new Vector3(obj.localScale.x + delta, obj.localScale.y + delta, obj.localScale.z + delta);
                             break;
                     }
                     break;
 
-                case GizmoTypes.Rotation:
+                case GizmoTools.Rotation:
                     delta *= RotationSensitivity;
                     switch (Axis)
                     {
                         case GizmoAxis.X:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.Rotate(Vector3.right * delta);
                             break;
                         case GizmoAxis.Y:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.Rotate(Vector3.up * delta);
                             break;
                         case GizmoAxis.Z:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                                 obj.Rotate(Vector3.forward * delta);
                             break;
                         case GizmoAxis.Center:
-                            foreach (var obj in Gizmo.SelectedObjects)
+                            foreach (var obj in Gizmo.Selected)
                             {
                                 obj.Rotate(Vector3.right * delta);
                                 obj.Rotate(Vector3.up * delta);
@@ -164,14 +164,14 @@ public class GizmoHandle : MonoBehaviour
         }
     }
 
-    public void SetType(GizmoTypes type)
+    public void SetType(GizmoTools type)
     {
         Type = type;
         if (Axis != GizmoAxis.Center)
         {
-            PositionCap.SetActive(type == GizmoTypes.Position);
-            RotationCap.SetActive(type == GizmoTypes.Rotation);
-            ScaleCap.SetActive(type == GizmoTypes.Scale);
+            PositionCap.SetActive(type == GizmoTools.Position);
+            RotationCap.SetActive(type == GizmoTools.Rotation);
+            ScaleCap.SetActive(type == GizmoTools.Scale);
         }
     }
 
