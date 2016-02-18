@@ -6,12 +6,22 @@ public class HUD : Singleton<HUD>
 	public ColorPicker ColorPicker;
 	public LensManager<LensHandle, bool> ShowColorPicker;
 
+	public WidgetFloatInspector WidgetFloatInspector;
+	public LensManager<LensHandle, bool> ShowFloatInspector;
+
 	[SerializeField]
 	PanelFileBrowser _panelFileBrowser;
 
 	protected override void Awake()
 	{
 		base.Awake();
+
+		WidgetFloatInspector.gameObject.SetActive(false);
+		ShowFloatInspector = new LensManager<LensHandle, bool>((requests) =>
+		{
+			WidgetFloatInspector.gameObject.SetActive(requests.Count > 0);
+			return requests.Count > 0;
+		});
 
 		ColorPicker.gameObject.SetActive(false);
 		ShowColorPicker = new LensManager<LensHandle, bool>((requests) => 

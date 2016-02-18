@@ -11,11 +11,25 @@ public class SerializeLight : SerializeComponent<Light>
 		{
 			HUD.GetInstance().ShowColorPicker.AddRequest(new LensHandle(this));
 			HUD.GetInstance().ColorPicker.onValueChanged.AddListener(UpdateColor);
+
+			HUD.GetInstance().ShowFloatInspector.AddRequest(new LensHandle(this));
+			HUD.GetInstance().WidgetFloatInspector.onValueChanged.AddListener(UpdateIntensity);
 		}
 		else
 		{
 			HUD.GetInstance().ShowColorPicker.RemoveRequestsWithContext(this);
 			HUD.GetInstance().ColorPicker.onValueChanged.RemoveListener(UpdateColor);
+
+			HUD.GetInstance().ShowFloatInspector.RemoveRequestsWithContext(this);
+			HUD.GetInstance().WidgetFloatInspector.onValueChanged.RemoveListener(UpdateIntensity);
+		}
+	}
+
+	void UpdateIntensity(float inValue)
+	{
+		if(component)
+		{
+			component.intensity = inValue;
 		}
 	}
 
