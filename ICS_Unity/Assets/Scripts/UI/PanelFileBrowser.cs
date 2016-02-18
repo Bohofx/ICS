@@ -80,9 +80,9 @@ public class PanelFileBrowser : MonoBehaviour
 
 	void RebufferContents(GameObject inContentsContainer)
 	{
-		foreach(Transform child in inContentsContainer.transform)
+		while(inContentsContainer.transform.childCount > 0)
 		{
-			child.transform.SetParent(_bufferedButtonTransform);
+			inContentsContainer.transform.GetChild(0).SetParent(_bufferedButtonTransform);
 		}
 	}
 
@@ -119,10 +119,14 @@ public class PanelFileBrowser : MonoBehaviour
 				text.text = inText;
 			}
 
-			image = button.GetComponentInChildren<Image>(true);
-			if(image)
+			Transform fileTypeImageTransform = button.transform.Find("FileTypeImage");
+			if(fileTypeImageTransform)
 			{
-				image.sprite = isDirectory ? _spriteDirectory : _spriteFile;
+				image = fileTypeImageTransform.GetComponentInChildren<Image>(true);
+				if(image)
+				{
+					image.sprite = isDirectory ? _spriteDirectory : _spriteFile;
+				}
 			}
 		}
 
@@ -145,6 +149,11 @@ public class PanelFileBrowser : MonoBehaviour
 		{
 			ChangeDirectory(_activeDirectory.Parent);
 		}
+	}
+
+	public void OnClickHome()
+	{
+		ChangeDirectory(new DirectoryInfo(Application.dataPath));
 	}
 
 	public void OnClickOpenOrSave()
