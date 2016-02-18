@@ -61,5 +61,7 @@ public class ToolsManager : Singleton<ToolsManager>
 		}
 		_selectedObjects.Clear();
 		_gizmo.ClearSelection();
+
+		_gizmo.Hide();
 	}
 }

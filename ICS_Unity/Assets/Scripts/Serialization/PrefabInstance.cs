@@ -13,12 +13,16 @@ public class PrefabInstance : MonoBehaviour
 	public string InstanceGUID
 	{ get { return _instanceGuid; } }
 
+	PickableObject _pickableObject;
+	public PickableObject PickableObject
+	{ get { return _pickableObject; } }
+
 	protected virtual void Awake()
 	{
 		_instanceGuid = System.Guid.NewGuid().ToString();
 		Environment.GetInstance().AddInstance(this);
 
-		gameObject.GetOrAddComponent<PickableObject>();
+		_pickableObject = gameObject.GetOrAddComponent<PickableObject>();
 	}
 
 	protected virtual void OnDestroy()

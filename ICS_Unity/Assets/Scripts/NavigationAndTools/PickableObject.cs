@@ -1,6 +1,10 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine.Events;
+
+[System.Serializable]
+public class SelectionStateChanged : UnityEvent<bool> { }
 
 public class PickableObject : MonoBehaviour
 {
@@ -42,6 +46,8 @@ public class PickableObject : MonoBehaviour
 			return _ignoreRaycast;
 		}
 	}
+
+	public SelectionStateChanged onSelectionStateChanged = new SelectionStateChanged();
 	
 	int _startLayer;
 
@@ -68,6 +74,7 @@ public class PickableObject : MonoBehaviour
 	{
 		_isSelected = inState;
 		gameObject.layer = _isSelected ? layerIgnoreRaycast : _startLayer;
+		onSelectionStateChanged.Invoke(_isSelected);
 	}
 
 	public void OnRenderObject()
@@ -101,11 +108,6 @@ public class PickableObject : MonoBehaviour
 			// Draw lines.
 			GL.Begin(GL.LINES);
 			GL.Color(_selectedBoxColor);
-			
-			// Set transformation matrix for drawing to
-			// match our transform.
-			//GL.PushMatrix();
-			//GL.MultMatrix(transform.localToWorldMatrix);
 
 			// Top
 			GL.Vertex(bounds.TLF());
@@ -138,7 +140,6 @@ public class PickableObject : MonoBehaviour
 			GL.Vertex(bounds.TRB());
 
 			GL.End();
-			//GL.PopMatrix();
 		}
 	}
 }
