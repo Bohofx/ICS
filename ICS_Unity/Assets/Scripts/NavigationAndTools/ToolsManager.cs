@@ -9,19 +9,21 @@ public class ToolsManager : Singleton<ToolsManager>
 
 	HashSet<PickableObject> _selectedObjects = new HashSet<PickableObject>();
 
+	void Update()
+	{
+		if(Input.GetKeyDown(KeyCode.Escape))
+		{
+			ClearAllSelected();
+		}
+	}
+
 	public void AddSelected(PickableObject inPickableObject)
 	{
 		bool inputShiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);
 
 		if(!inputShiftDown)
 		{
-			var enumerator = _selectedObjects.GetEnumerator();
-			while(enumerator.MoveNext())
-			{
-				enumerator.Current.SetSelected(false);
-			}
-			_selectedObjects.Clear();
-			_gizmo.ClearSelection();
+			ClearAllSelected();
 		}
 		
 		if(inPickableObject)
@@ -48,5 +50,16 @@ public class ToolsManager : Singleton<ToolsManager>
 		{
 			_gizmo.Hide();
 		}
+	}
+
+	void ClearAllSelected()
+	{
+		var enumerator = _selectedObjects.GetEnumerator();
+		while(enumerator.MoveNext())
+		{
+			enumerator.Current.SetSelected(false);
+		}
+		_selectedObjects.Clear();
+		_gizmo.ClearSelection();
 	}
 }

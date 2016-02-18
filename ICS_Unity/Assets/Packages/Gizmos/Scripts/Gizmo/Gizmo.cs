@@ -59,11 +59,6 @@ public class Gizmo : MonoBehaviour
             {
                 SetType(GizmoTypes.Scale);
             }
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                ClearSelection();
-                Hide();
-            }
         }
         if (SelectedObjects.Count > 0)
         {
@@ -89,10 +84,6 @@ public class Gizmo : MonoBehaviour
     }
     public void ClearSelection()
     {
-        foreach (var obj in SelectedObjects)
-        {
-            (obj.gameObject.GetComponent<GizmoSelect>()).Unselect();
-        }
         SelectedObjects.Clear();
         Center = Vector3.zero;
     }

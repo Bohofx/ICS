@@ -12,8 +12,8 @@ public class EditorCamera : MonoBehaviour
 	[SerializeField]
 	float _normalMoveSpeed = 5f;
 
-	float rotationX = 0.0f;
-	float rotationY = 0.0f;
+	float _rotationX = 0.0f;
+	float _rotationY = 0.0f;
 
 	enum CameraRotationMode
 	{
@@ -22,10 +22,11 @@ public class EditorCamera : MonoBehaviour
 	}
 	CameraRotationMode _cameraRotationMode = CameraRotationMode.PivotAboutSelf;
 
-	void Start()
+	void Awake()
 	{
-		if(Application.isPlayer)
-			Cursor.lockState = CursorLockMode.Locked;
+		var euler = transform.localRotation.eulerAngles;
+		_rotationY = -euler.x;
+		_rotationX = euler.y;
 	}
 
 	void Update()
@@ -42,12 +43,12 @@ public class EditorCamera : MonoBehaviour
 
 		if(anyRotationKeyPressed)
 		{
-			rotationX += Input.GetAxis("Mouse X") * _lookSensitivity * Time.deltaTime;
-			rotationY += Input.GetAxis("Mouse Y") * _lookSensitivity * Time.deltaTime;
-			rotationY = Mathf.Clamp(rotationY, -90, 90);
+			_rotationX += Input.GetAxis("Mouse X") * _lookSensitivity * Time.deltaTime;
+			_rotationY += Input.GetAxis("Mouse Y") * _lookSensitivity * Time.deltaTime;
+			_rotationY = Mathf.Clamp(_rotationY, -90, 90);
 
-			transform.localRotation = Quaternion.AngleAxis(rotationX, Vector3.up);
-			transform.localRotation *= Quaternion.AngleAxis(rotationY, Vector3.left);
+			transform.localRotation = Quaternion.AngleAxis(_rotationX, Vector3.up);
+			transform.localRotation *= Quaternion.AngleAxis(_rotationY, Vector3.left);
 		}
 
 		bool isUsingFastScroll = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
@@ -55,10 +56,5 @@ public class EditorCamera : MonoBehaviour
 		float moveSpeed = isUsingFastScroll ? _fastMoveSpeed : _normalMoveSpeed;
 		transform.position += transform.forward * moveSpeed * Input.GetAxis("Vertical") * Time.deltaTime;
 		transform.position += transform.right * moveSpeed * Input.GetAxis("Horizontal") * Time.deltaTime;
-
-		if(Input.GetKeyDown(KeyCode.End))
-		{
-			Cursor.lockState = Cursor.lockState == CursorLockMode.Locked ? CursorLockMode.None : CursorLockMode.Locked;
-		}
 	}
 }

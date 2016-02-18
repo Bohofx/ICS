@@ -51,7 +51,7 @@ public class Environment : Singleton<Environment>
 				for(int i = 0; i < count; ++i)
 				{
 					JSONNode instanceNode = node["SceneInstances"][i];
-					PrefabInstance prefabInstance = CreatePrefabInstance(instanceNode);
+					PrefabInstance prefabInstance = CreatePrefabInstanceFromJson(instanceNode);
 					if(prefabInstance)
 					{
 						prefabInstance.Deserialize(instanceNode);
@@ -70,25 +70,17 @@ public class Environment : Singleton<Environment>
 		}
 	}
 
-	static PrefabInstance CreatePrefabInstance(JSONNode inNode)
+	static PrefabInstance CreatePrefabInstanceFromJson(JSONNode inNode)
 	{
-		AssetPath prefabSource = new AssetPath()
+		AssetPath assetPath = new AssetPath()
 		{
 			name = inNode["ResourceName"].Value,
 			resx = inNode["ResourcePath"].Value,
 			guid = inNode["ResourceGUID"].Value,
 		};
-		
-		GameObject resource = prefabSource.Load<GameObject>();
-		
-		GameObject gameObjectInstance = GameObject.Instantiate<GameObject>(resource);
-		
-		PrefabInstance prefabInstance = gameObjectInstance.GetComponentInChildren<PrefabInstance>(true);
-		if(prefabInstance)
-		{
-			prefabInstance.PrefabSource = prefabSource;
-		}
-		return prefabInstance;
+
+		PrefabInstance instance = PrefabInstance.CreateFromAssetPath(assetPath);
+		return instance;
 	}
 
 	internal void AddInstance(PrefabInstance inInstance)

@@ -37,7 +37,7 @@ public class PickableObject : MonoBehaviour
 		{
 			if(_ignoreRaycast == -1)
 			{
-				_ignoreRaycast = 1 << LayerMask.NameToLayer("Ignore Raycast");
+				_ignoreRaycast = LayerMask.NameToLayer("Ignore Raycast");
 			}
 			return _ignoreRaycast;
 		}
@@ -46,36 +46,17 @@ public class PickableObject : MonoBehaviour
 	int _startLayer;
 
 	bool _isSelected;
-
-	Bounds? _bounds = null;
-	Bounds bounds
-	{ get { return _bounds.GetValueOrDefault(); } }
+	
+	List<Collider> _colliders = new List<Collider>();
+	
+	List<Renderer> _renderers = new List<Renderer>();
 
 	void Awake()
 	{
 		_startLayer = gameObject.layer;
 
-		List<Collider> colliders = new List<Collider>();
-		List<Renderer> renderers = new List<Renderer>();
-
-		gameObject.GetComponentsInChildren<Collider>(colliders);
-		gameObject.GetComponentsInChildren<Renderer>(renderers);
-
-		foreach(var collider in colliders)
-		{
-			if(_bounds == null)
-				_bounds = collider.bounds;
-			else
-				_bounds.GetValueOrDefault().Encapsulate(collider.bounds);
-		}
-
-		foreach(var renderer in renderers)
-		{
-			if(_bounds == null)
-				_bounds = renderer.bounds;
-			else
-				_bounds.GetValueOrDefault().Encapsulate(renderer.bounds);
-		}
+		gameObject.GetComponentsInChildren<Collider>(_colliders);
+		gameObject.GetComponentsInChildren<Renderer>(_renderers);
 	}
 
 	void OnMouseDown()
@@ -93,15 +74,40 @@ public class PickableObject : MonoBehaviour
 	{
 		if(_isSelected)
 		{
+			// Calculate bounds.
+			Bounds? calculatedBounds = null;
+
+			foreach(var collider in _colliders)
+			{
+				if(calculatedBounds == null)
+					calculatedBounds = collider.bounds;
+				else
+					calculatedBounds.GetValueOrDefault().Encapsulate(collider.bounds);
+			}
+
+			foreach(var renderer in _renderers)
+			{
+				if(calculatedBounds == null)
+					calculatedBounds = renderer.bounds;
+				else
+					calculatedBounds.GetValueOrDefault().Encapsulate(renderer.bounds);
+			}
+
+			var bounds = calculatedBounds.GetValueOrDefault();
+
 			// Apply the line material.
 			lineMaterial.SetPass(0);
 
 			// Draw lines.
 			GL.Begin(GL.LINES);
 			GL.Color(_selectedBoxColor);
+			
+			// Set transformation matrix for drawing to
+			// match our transform.
+			//GL.PushMatrix();
+			//GL.MultMatrix(transform.localToWorldMatrix);
 
 			// Top
-
 			GL.Vertex(bounds.TLF());
 			GL.Vertex(bounds.TRF());
 			GL.Vertex(bounds.TRF());
@@ -112,7 +118,6 @@ public class PickableObject : MonoBehaviour
 			GL.Vertex(bounds.TLF());
 
 			// Bottom
-
 			GL.Vertex(bounds.BLF());
 			GL.Vertex(bounds.BRF());
 			GL.Vertex(bounds.BRF());
@@ -123,7 +128,6 @@ public class PickableObject : MonoBehaviour
 			GL.Vertex(bounds.BLF());
 
 			// Sides
-
 			GL.Vertex(bounds.BLF());
 			GL.Vertex(bounds.TLF());
 			GL.Vertex(bounds.BRF());
@@ -132,8 +136,9 @@ public class PickableObject : MonoBehaviour
 			GL.Vertex(bounds.TLB());
 			GL.Vertex(bounds.BRB());
 			GL.Vertex(bounds.TRB());
-			
+
 			GL.End();
+			//GL.PopMatrix();
 		}
 	}
 }

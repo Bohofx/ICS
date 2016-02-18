@@ -26,6 +26,20 @@ public class PrefabInstance : MonoBehaviour
 		if(Environment.HasInstance())
 			Environment.GetInstance().RemoveInstance(this);
 	}
+	
+	public static PrefabInstance CreateFromAssetPath(AssetPath inPath)
+	{
+		GameObject resource = inPath.Load<GameObject>();
+		
+		GameObject gameObject = GameObject.Instantiate<GameObject>(resource);
+		PrefabInstance prefabInstance = gameObject.GetComponentInChildren<PrefabInstance>(true);
+		if(prefabInstance)
+		{
+			prefabInstance.PrefabSource = inPath;
+		}
+		
+		return prefabInstance;
+	}
 
 	public void Serialize(JSONNode inNode)
 	{
