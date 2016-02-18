@@ -69,6 +69,7 @@ public class Environment : Singleton<Environment>
 	public void ClearScene()
 	{
 		Gizmo.GetInstance().ClearSelection();
+		UndoManager.GetInstance().Reset();
 		while(_sceneInstances.Count > 0)
 		{
 			Destroy(_sceneInstances[0].gameObject);

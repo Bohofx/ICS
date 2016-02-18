@@ -150,6 +150,21 @@ public class Gizmo : Singleton<Gizmo>
 			Hide();
 	}
 
+	public Bounds GetBoundsForSelected()
+	{
+		Bounds bounds = new Bounds();
+		if(Selected.Count > 0)
+		{
+			bounds = Selected[0].GetComponent<PickableObject>().PickableBounds;
+			for(int i = 1; i < Selected.Count; ++i)
+			{
+				PickableObject pickableObject = Selected[i].GetComponent<PickableObject>();
+				bounds.Encapsulate(pickableObject.PickableBounds);
+			}
+		}
+		return bounds;
+	}
+
 	public void SelectObject(PickableObject inPickable)
 	{
 		bool inputShiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);

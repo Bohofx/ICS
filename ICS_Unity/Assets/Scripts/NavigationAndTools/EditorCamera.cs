@@ -22,7 +22,7 @@ public class EditorCamera : MonoBehaviour
 	}
 	CameraRotationMode _cameraRotationMode = CameraRotationMode.PivotAboutSelf;
 
-	void Awake()
+	void OnEnable()
 	{
 		var euler = transform.localRotation.eulerAngles;
 		_rotationY = -euler.x;
