@@ -48,6 +48,33 @@ public class PickableObject : MonoBehaviour
 	}
 
 	public SelectionStateChanged onSelectionStateChanged = new SelectionStateChanged();
+
+	public Bounds PickableBounds
+	{
+		get
+		{
+			// Calculate bounds.
+			Bounds? calculatedBounds = null;
+
+			foreach(var collider in _colliders)
+			{
+				if(calculatedBounds == null)
+					calculatedBounds = collider.bounds;
+				else
+					calculatedBounds.GetValueOrDefault().Encapsulate(collider.bounds);
+			}
+
+			foreach(var renderer in _renderers)
+			{
+				if(calculatedBounds == null)
+					calculatedBounds = renderer.bounds;
+				else
+					calculatedBounds.GetValueOrDefault().Encapsulate(renderer.bounds);
+			}
+
+			return calculatedBounds.GetValueOrDefault();
+		}
+	}
 	
 	int _startLayer;
 
@@ -81,26 +108,7 @@ public class PickableObject : MonoBehaviour
 	{
 		if(_isSelected)
 		{
-			// Calculate bounds.
-			Bounds? calculatedBounds = null;
-
-			foreach(var collider in _colliders)
-			{
-				if(calculatedBounds == null)
-					calculatedBounds = collider.bounds;
-				else
-					calculatedBounds.GetValueOrDefault().Encapsulate(collider.bounds);
-			}
-
-			foreach(var renderer in _renderers)
-			{
-				if(calculatedBounds == null)
-					calculatedBounds = renderer.bounds;
-				else
-					calculatedBounds.GetValueOrDefault().Encapsulate(renderer.bounds);
-			}
-
-			var bounds = calculatedBounds.GetValueOrDefault();
+			var bounds = PickableBounds;
 
 			// Apply the line material.
 			lineMaterial.SetPass(0);
