@@ -63,6 +63,7 @@ public class Environment : Singleton<Environment>
 
 	void ClearScene()
 	{
+		ToolsManager.GetInstance().ClearAllSelected();
 		while(_sceneInstances.Count > 0)
 		{
 			Destroy(_sceneInstances[0].gameObject);

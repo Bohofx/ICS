@@ -52,7 +52,7 @@ public class ToolsManager : Singleton<ToolsManager>
 		}
 	}
 
-	void ClearAllSelected()
+	public void ClearAllSelected()
 	{
 		var enumerator = _selectedObjects.GetEnumerator();
 		while(enumerator.MoveNext())
