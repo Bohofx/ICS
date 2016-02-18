@@ -19,124 +19,175 @@ public class GizmoHandle : MonoBehaviour
     private Material inactiveMaterial;
     private bool activeHandle;
 
+	MoveObjectCommand _moveObjectCommand;
+
+	Vector3 _worldDelta;
+
     void Awake()
     {
         inactiveMaterial = GetComponent<Renderer>().material;
     }
 
-    public void OnMouseDown()
+	void OnDisable()
+	{
+		FlushCommands();
+	}
+
+	void FlushCommands()
+	{
+		if(_moveObjectCommand != null)
+		{
+			_moveObjectCommand.WorldDelta = _worldDelta;
+			UndoManager.GetInstance().Record(_moveObjectCommand);
+			_worldDelta = Vector3.zero;
+			_moveObjectCommand = null;
+		}
+	}
+
+    void OnMouseDown()
     {
+		switch(Type)
+		{
+			case GizmoTools.Position:
+				_moveObjectCommand = new MoveObjectCommand(Gizmo.Selected);
+				_worldDelta = Vector3.zero;
+				break;
+			default:
+				break;
+		}
+
         Gizmo.DeactivateHandles();
         SetActive(true);
     }
 
-    public void OnMouseDrag()
-    {
-        var delta = 0f;
-        var vert = 0f;
-        var horz = 0f;
-        if (activeHandle)
-        {
-            horz = Input.GetAxis("Mouse X") * Time.deltaTime;
-            vert = Input.GetAxis("Mouse Y") * Time.deltaTime;
+	void OnMouseUp()
+	{
+		FlushCommands();
+	}
 
-            // TODO: GizmoControl should be based on the camera not a selection -- X, Z are set to "both" for now.
-            switch (Control)
-            {
-                case GizmoControl.Horizontal:
-                    delta = Input.GetAxis("Mouse X") * Time.deltaTime;
-                    break;
-                case GizmoControl.Vertical:
-                    delta = Input.GetAxis("Mouse Y") * Time.deltaTime;
-                    break;
-                case GizmoControl.Both:
-                    delta = (Input.GetAxis("Mouse X") + Input.GetAxis("Mouse Y")) * Time.deltaTime;
-                    break;
-            }
+	public void OnMouseDrag()
+	{
+		Vector3 frameDelta = Vector3.zero;
 
-            switch (Type)
-            {
-                case GizmoTools.Position:
-                    delta *= MoveSensitivity;
-                    horz *= MoveSensitivity;
-                    vert *= MoveSensitivity;
-                    switch (Axis)
-                    {
-                        case GizmoAxis.X:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.Translate(Vector3.right * delta, Space.World);
-                            break;
-                        case GizmoAxis.Y:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.Translate(Vector3.up * delta, Space.World);
-                            break;
-                        case GizmoAxis.Z:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.Translate(Vector3.forward * delta, Space.World);
-                            break;
-                        case GizmoAxis.Center:
-                            // Based on the camera position we need to either move X horizontal or vertical / vice versa with Z
-                            foreach (var obj in Gizmo.Selected)
-                            {
-                                obj.Translate(Vector3.right * horz, Space.World);
-                                obj.Translate(Vector3.forward * vert, Space.World);
-                            }
-                            break;
-                    }
-                    break;
+		var delta = 0f;
+		var vert = 0f;
+		var horz = 0f;
+		if(activeHandle)
+		{
+			horz = Input.GetAxis("Mouse X") * Time.deltaTime;
+			vert = Input.GetAxis("Mouse Y") * Time.deltaTime;
 
-                case GizmoTools.Scale:
-                    delta *= ScaleSensitivity;
-                    switch (Axis)
-                    {
-                        case GizmoAxis.X:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.localScale = new Vector3(obj.localScale.x + delta, obj.localScale.y, obj.localScale.z);
-                            break;
-                        case GizmoAxis.Y:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.localScale = new Vector3(obj.localScale.x, obj.localScale.y + delta, obj.localScale.z);
-                            break;
-                        case GizmoAxis.Z:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.localScale = new Vector3(obj.localScale.x, obj.localScale.y, obj.localScale.z + delta);
-                            break;
-                        case GizmoAxis.Center:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.localScale = new Vector3(obj.localScale.x + delta, obj.localScale.y + delta, obj.localScale.z + delta);
-                            break;
-                    }
-                    break;
+			// TODO: GizmoControl should be based on the camera not a selection -- X, Z are set to "both" for now.
+			switch(Control)
+			{
+				case GizmoControl.Horizontal:
+					delta = Input.GetAxis("Mouse X") * Time.deltaTime;
+					break;
+				case GizmoControl.Vertical:
+					delta = Input.GetAxis("Mouse Y") * Time.deltaTime;
+					break;
+				case GizmoControl.Both:
+					delta = (Input.GetAxis("Mouse X") + Input.GetAxis("Mouse Y")) * Time.deltaTime;
+					break;
+			}
 
-                case GizmoTools.Rotation:
-                    delta *= RotationSensitivity;
-                    switch (Axis)
-                    {
-                        case GizmoAxis.X:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.Rotate(Vector3.right * delta);
-                            break;
-                        case GizmoAxis.Y:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.Rotate(Vector3.up * delta);
-                            break;
-                        case GizmoAxis.Z:
-                            foreach (var obj in Gizmo.Selected)
-                                obj.Rotate(Vector3.forward * delta);
-                            break;
-                        case GizmoAxis.Center:
-                            foreach (var obj in Gizmo.Selected)
-                            {
-                                obj.Rotate(Vector3.right * delta);
-                                obj.Rotate(Vector3.up * delta);
-                                obj.Rotate(Vector3.forward * delta);
-                            }
-                            break;
-                    }
-                    break;
-            }
-        }
-    }
+			switch(Type)
+			{
+				case GizmoTools.Position:
+					delta *= MoveSensitivity;
+					horz *= MoveSensitivity;
+					vert *= MoveSensitivity;
+					switch(Axis)
+					{
+						case GizmoAxis.X:
+							frameDelta = Vector3.right * delta;
+							foreach(var obj in Gizmo.Selected)
+							{
+								obj.Translate(frameDelta, Space.World);
+							}
+							break;
+						case GizmoAxis.Y:
+							frameDelta = Vector3.up * delta;
+							foreach(var obj in Gizmo.Selected)
+							{
+								obj.Translate(frameDelta, Space.World);
+							}
+							break;
+						case GizmoAxis.Z:
+							frameDelta = Vector3.forward * delta;
+							foreach(var obj in Gizmo.Selected)
+							{
+								obj.Translate(frameDelta, Space.World);
+							}
+							break;
+						case GizmoAxis.Center:
+							// Based on the camera position we need to either move X horizontal or vertical / vice versa with Z
+							foreach(var obj in Gizmo.Selected)
+							{
+								Vector3 xDelta = Vector3.right * horz;
+								Vector3 zDelta = Vector3.forward * vert;
+								frameDelta = xDelta + zDelta;
+								obj.Translate(xDelta, Space.World);
+								obj.Translate(zDelta, Space.World);
+							}
+							break;
+					}
+					break;
+
+				case GizmoTools.Scale:
+					delta *= ScaleSensitivity;
+					switch(Axis)
+					{
+						case GizmoAxis.X:
+							foreach(var obj in Gizmo.Selected)
+								obj.localScale = new Vector3(obj.localScale.x + delta, obj.localScale.y, obj.localScale.z);
+							break;
+						case GizmoAxis.Y:
+							foreach(var obj in Gizmo.Selected)
+								obj.localScale = new Vector3(obj.localScale.x, obj.localScale.y + delta, obj.localScale.z);
+							break;
+						case GizmoAxis.Z:
+							foreach(var obj in Gizmo.Selected)
+								obj.localScale = new Vector3(obj.localScale.x, obj.localScale.y, obj.localScale.z + delta);
+							break;
+						case GizmoAxis.Center:
+							foreach(var obj in Gizmo.Selected)
+								obj.localScale = new Vector3(obj.localScale.x + delta, obj.localScale.y + delta, obj.localScale.z + delta);
+							break;
+					}
+					break;
+
+				case GizmoTools.Rotation:
+					delta *= RotationSensitivity;
+					switch(Axis)
+					{
+						case GizmoAxis.X:
+							foreach(var obj in Gizmo.Selected)
+								obj.Rotate(Vector3.right * delta);
+							break;
+						case GizmoAxis.Y:
+							foreach(var obj in Gizmo.Selected)
+								obj.Rotate(Vector3.up * delta);
+							break;
+						case GizmoAxis.Z:
+							foreach(var obj in Gizmo.Selected)
+								obj.Rotate(Vector3.forward * delta);
+							break;
+						case GizmoAxis.Center:
+							foreach(var obj in Gizmo.Selected)
+							{
+								obj.Rotate(Vector3.right * delta);
+								obj.Rotate(Vector3.up * delta);
+								obj.Rotate(Vector3.forward * delta);
+							}
+							break;
+					}
+					break;
+			}
+		}
+
+		_worldDelta += frameDelta;
+	}
 
     public void SetActive(bool active)
     {

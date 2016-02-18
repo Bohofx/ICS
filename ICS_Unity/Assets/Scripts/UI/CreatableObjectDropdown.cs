@@ -34,22 +34,14 @@ public class CreatableObjectDropdown : MonoBehaviour
 		Ray ray = Camera.main.ViewportPointToRay(new Vector2(.5f, .5f));
 		int roomBoundsMask = (1 << LayerMask.NameToLayer("RoomBounds"));
 
-		index = Mathf.Clamp(index, 0, _assetsToSpawn.Length - 1);
-		PrefabInstance instance = PrefabInstance.CreateFromAssetPath(_assetsToSpawn[index]);
-
-		if(instance)
+		RaycastHit hit; Vector3? spawnPosition = null;
+		if(Physics.Raycast(ray, out hit, Mathf.Infinity, roomBoundsMask))
 		{
-			RaycastHit hit;
-			if(Physics.Raycast(ray, out hit, Mathf.Infinity, roomBoundsMask))
-			{
-				instance.transform.position = hit.point;
-
-				PickableObject pickable = instance.GetComponent<PickableObject>();
-				if(pickable)
-				{
-					instance.transform.localPosition += new Vector3(0f, pickable.PickableBounds.extents.y, 0f);
-				}
-			}
+			spawnPosition = hit.point;
 		}
+
+		index = Mathf.Clamp(index, 0, _assetsToSpawn.Length - 1);
+		SpawnObjectCommand command = new SpawnObjectCommand(_assetsToSpawn[index], spawnPosition);
+		UndoManager.GetInstance().Do(command);
 	}
 }
