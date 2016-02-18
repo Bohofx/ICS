@@ -6,7 +6,8 @@ public class HUD : Singleton<HUD>
 	public ColorPicker ColorPicker;
 	public LensManager<LensHandle, bool> ShowColorPicker;
 
-	public PanelFileBrowser PanelFileBrowser;
+	[SerializeField]
+	PanelFileBrowser _panelFileBrowser;
 
 	protected override void Awake()
 	{
@@ -19,16 +20,39 @@ public class HUD : Singleton<HUD>
 			return requests.Count > 0;
 		});
 
-		PanelFileBrowser.gameObject.SetActive(false);
+		_panelFileBrowser.onFinishBrowsing.AddListener(OnFinishBrowsing);
+		_panelFileBrowser.gameObject.SetActive(false);
 	}
 
 	public void OnClickLoad()
 	{
-		PanelFileBrowser.gameObject.SetActive(true);
+		_panelFileBrowser.Mode = PanelFileBrowser.FileBrowserMode.Open;
+		_panelFileBrowser.gameObject.SetActive(true);
 	}
 
 	public void OnClickSave()
 	{
-		PanelFileBrowser.gameObject.SetActive(true);
+		_panelFileBrowser.Mode = PanelFileBrowser.FileBrowserMode.Save;
+		_panelFileBrowser.gameObject.SetActive(true);
+	}
+
+	public void OnClickNew()
+	{
+		Environment.GetInstance().ClearScene();
+	}
+
+	void OnFinishBrowsing(string inTargetPath)
+	{
+		if(!string.IsNullOrEmpty(inTargetPath))
+		{
+			if(_panelFileBrowser.Mode == PanelFileBrowser.FileBrowserMode.Open)
+			{
+				Environment.GetInstance().DeserializeScene(inTargetPath);
+			}
+			else if(_panelFileBrowser.Mode == PanelFileBrowser.FileBrowserMode.Save)
+			{
+				Environment.GetInstance().SerializeScene(inTargetPath);
+			}
+		}
 	}
 }

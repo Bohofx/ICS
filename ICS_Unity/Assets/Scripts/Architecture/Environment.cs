@@ -9,15 +9,15 @@ public class Environment : Singleton<Environment>
 {
 	List<PrefabInstance> _sceneInstances = new List<PrefabInstance>();
 
-	void Start()
-	{
-		SerializeScene();
-	}
-
 	#if UNITY_EDITOR
 	[ContextMenu("Serialize scene")]
-	#endif
+#endif
 	void SerializeScene()
+	{
+		SerializeScene("TestSerialization.dat");
+	}
+	
+	public void SerializeScene(string inFilePath)
 	{
 		var jsonNode = JSON.Parse("{ }");
 		jsonNode["Version"] = "1";
@@ -29,7 +29,7 @@ public class Environment : Singleton<Environment>
 			_sceneInstances[i].Serialize(jsonNode["SceneInstances"][i]);
 		}
 
-		jsonNode.SaveToFile("TestSerialization.dat");
+		jsonNode.SaveToFile(inFilePath);
 		
 		#if UNITY_EDITOR
 		Debug.Log(jsonNode.ToString(), this);
@@ -38,11 +38,16 @@ public class Environment : Singleton<Environment>
 
 	#if UNITY_EDITOR
 	[ContextMenu("Deserialize scene")]
-	#endif
+#endif
 	void DeserializeScene()
 	{
+		DeserializeScene("TestSerialization.dat");
+	}
+
+	public void DeserializeScene(string inFilePath)
+	{
 		ClearScene();
-		using(var stream = File.OpenRead("TestSerialization.dat"))
+		using(var stream = File.OpenRead(inFilePath))
 		{
 			using(var reader = new BinaryReader(stream))
 			{
@@ -61,7 +66,7 @@ public class Environment : Singleton<Environment>
 		}
 	}
 
-	void ClearScene()
+	public void ClearScene()
 	{
 		ToolsManager.GetInstance().ClearAllSelected();
 		while(_sceneInstances.Count > 0)

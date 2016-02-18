@@ -8,8 +8,17 @@ using System.Linq;
 
 public class PanelFileBrowser : MonoBehaviour
 {
+	public enum FileBrowserMode
+	{
+		Open,
+		Save,
+	}
+
+	public FileBrowserMode Mode
+	{ get; set; }
+
 	[SerializeField]
-	public Button ButtonTemplate;
+	Button _buttonTemplate;
 
 	[SerializeField]
 	Transform _bufferedButtonTransform;
@@ -29,14 +38,91 @@ public class PanelFileBrowser : MonoBehaviour
 	[SerializeField]
 	Sprite _spriteFile;
 
+	[SerializeField]
+	InputField _inputFieldFileName;
+
+	[SerializeField]
+	Button _buttonOpenOrSave;
+
 	DirectoryInfo _activeDirectory;
+
+	public class OnFinishBrowsingEvent : UnityEvent<string>
+	{ }
+
+	public OnFinishBrowsingEvent onFinishBrowsing = new OnFinishBrowsingEvent();
 	
-	string[] _logicalDrives;
+	Button _selectedButton;
+
+	void Awake()
+	{
+		_inputFieldFileName.onValueChanged.AddListener(OnFilenameInputFieldValueChanged);
+	}
+
+	void OnFilenameInputFieldValueChanged(string inNewValue)
+	{
+		if(_activeDirectory != null)
+		{
+			_buttonOpenOrSave.enabled = IsNameValid();
+		}
+	}
+
+	bool IsNameValid()
+	{
+		char[] invalidCharacters = Path.GetInvalidFileNameChars();
+		bool charactersValid = GetTargetFilename().IndexOfAny(invalidCharacters) < 0;
+		bool doesntExist = !File.Exists(GetTargetPath());
+		return charactersValid && doesntExist;
+	}
+
+	string GetTargetPath()
+	{
+		string targetPath = string.Empty;
+		if(Mode == FileBrowserMode.Save)
+		{
+			if(_activeDirectory != null)
+			{
+				targetPath = Path.Combine(_activeDirectory.FullName, GetTargetFilename());
+				if(!Path.HasExtension(targetPath))
+				{
+					targetPath = Path.ChangeExtension(targetPath, ".dat");
+				}
+			}
+		}
+		else
+		{
+			if(_activeDirectory != null && _selectedButton != null)
+			{
+				targetPath = Path.Combine(_activeDirectory.FullName, _selectedButton.name);
+			}
+		}
+
+		return targetPath;
+	}
+
+	string GetTargetFilename()
+	{
+		return _inputFieldFileName.text;
+	}
 
 	void OnEnable()
 	{
-		_logicalDrives = Directory.GetLogicalDrives();
-		InitializeDrives();
+		_inputFieldFileName.gameObject.SetActive(Mode == PanelFileBrowser.FileBrowserMode.Save);
+
+		Text text = _buttonOpenOrSave.GetComponentInChildren<Text>(true);
+		if(text)
+			text.text = Mode == FileBrowserMode.Save ? "Save" : "Open";
+		
+		string[] logicalDrives = Directory.GetLogicalDrives();
+		RebufferContents(_scrollListContentsDrives);
+		if(logicalDrives != null)
+		{
+			foreach(string logicalDrive in logicalDrives)
+			{
+				DirectoryInfo driveInfo = new DirectoryInfo(logicalDrive);
+				CreateButtonDirectory(driveInfo.FullName, _scrollListContentsDrives, driveInfo);
+			}
+		}
+
 		ChangeDirectory(new DirectoryInfo(Application.dataPath));
 	}
 
@@ -54,26 +140,13 @@ public class PanelFileBrowser : MonoBehaviour
 			var directoryInfos = _activeDirectory.GetDirectories().OrderBy(directoryInfo => directoryInfo.Name);
 			foreach(DirectoryInfo directoryInfo in directoryInfos)
 			{
-				CreateButtonForFileOrDirectory(directoryInfo.Name, _scrollListContentsCurrentDirectory, true, () => ChangeDirectory(directoryInfo));
+				CreateButtonDirectory(directoryInfo.Name, _scrollListContentsCurrentDirectory, directoryInfo);
 			}
 
 			var fileInfos = _activeDirectory.GetFiles().OrderBy(fileInfo => fileInfo.Name);
 			foreach(FileInfo fileInfo in fileInfos)
 			{
-				CreateButtonForFileOrDirectory(fileInfo.Name, _scrollListContentsCurrentDirectory, false, null);
-			}
-		}
-	}
-
-	void InitializeDrives()
-	{
-		RebufferContents(_scrollListContentsDrives);
-		if(_logicalDrives != null)
-		{
-			foreach(string logicalDrive in _logicalDrives)
-			{
-				DirectoryInfo driveInfo = new DirectoryInfo(logicalDrive);
-				CreateButtonForFileOrDirectory(driveInfo.FullName, _scrollListContentsDrives, true, () => ChangeDirectory(driveInfo));
+				CreateButtonFile(fileInfo.Name, _scrollListContentsCurrentDirectory);
 			}
 		}
 	}
@@ -86,11 +159,32 @@ public class PanelFileBrowser : MonoBehaviour
 		}
 	}
 
-	GameObject CreateButtonForFileOrDirectory(string inText, GameObject inParent, bool isDirectory, UnityAction inAction)
+	void CreateButtonDirectory(string inText, GameObject inParent, DirectoryInfo inDirectoryInfo)
+	{
+		Button button = DequeueButton(inText, inParent, _spriteDirectory);
+		if(button)
+		{
+			button.onClick.RemoveAllListeners();
+			if(inDirectoryInfo != null)
+			{
+				button.onClick.AddListener(() => ChangeDirectory(inDirectoryInfo));
+			}
+		}
+	}
+
+	void CreateButtonFile(string inText, GameObject inParent)
+	{
+		Button button = DequeueButton(inText, inParent, _spriteFile);
+		if(button)
+		{
+			button.onClick.RemoveAllListeners();
+			button.onClick.AddListener(() => _selectedButton = button);
+		}
+	}
+
+	Button DequeueButton(string inText, GameObject inParent, Sprite inSprite)
 	{
 		Button button = null;
-		Image image = null;
-		Text text = null;
 
 		if(_bufferedButtonTransform.childCount > 0)
 		{
@@ -99,19 +193,16 @@ public class PanelFileBrowser : MonoBehaviour
 		}
 		else
 		{
-			button = GameObject.Instantiate<Button>(ButtonTemplate);
+			button = GameObject.Instantiate<Button>(_buttonTemplate);
 		}
 
 		if(button)
 		{
+			Image image = null;
+			Text text = null;
+
 			button.name = inText;
 			button.transform.SetParent(inParent.transform, false);
-			
-			button.onClick.RemoveAllListeners();
-			if(inAction != null)
-			{
-				button.onClick.AddListener(inAction);
-			}
 
 			text = button.GetComponentInChildren<Text>(true);
 			if(text)
@@ -125,12 +216,11 @@ public class PanelFileBrowser : MonoBehaviour
 				image = fileTypeImageTransform.GetComponentInChildren<Image>(true);
 				if(image)
 				{
-					image.sprite = isDirectory ? _spriteDirectory : _spriteFile;
+					image.sprite = inSprite;
 				}
 			}
 		}
-
-		return button.gameObject;
+		return button;
 	}
 
 	void ChangeDirectory(DirectoryInfo inDirectoryInfo)
@@ -158,11 +248,13 @@ public class PanelFileBrowser : MonoBehaviour
 
 	public void OnClickOpenOrSave()
 	{
+		onFinishBrowsing.Invoke(GetTargetPath());
 		gameObject.SetActive(false);
 	}
 
 	public void OnClickCancel()
 	{
+		onFinishBrowsing.Invoke(string.Empty);
 		gameObject.SetActive(false);
 	}
 }
