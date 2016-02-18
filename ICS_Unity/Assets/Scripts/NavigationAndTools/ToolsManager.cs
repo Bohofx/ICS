@@ -1,24 +1,52 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class ToolsManager : Singleton<ToolsManager>
 {
-	PickableObject _selectedObject = null;
-	public PickableObject SelectedObject
-	{ get { return _selectedObject; } }
+	[SerializeField]
+	Gizmo _gizmo = null;
 
-	public void SetSelected(PickableObject inPickableObject)
+	HashSet<PickableObject> _selectedObjects = new HashSet<PickableObject>();
+
+	public void AddSelected(PickableObject inPickableObject)
 	{
-		if(_selectedObject)
+		bool inputShiftDown = Input.GetKey(KeyCode.LeftShift) || Input.GetKeyDown(KeyCode.RightShift);
+
+		if(!inputShiftDown)
 		{
-			_selectedObject.SetSelected(false);
+			var enumerator = _selectedObjects.GetEnumerator();
+			while(enumerator.MoveNext())
+			{
+				enumerator.Current.SetSelected(false);
+			}
+			_selectedObjects.Clear();
+			_gizmo.ClearSelection();
 		}
 		
 		if(inPickableObject)
 		{
-			inPickableObject.SetSelected(true);
+			if(!_selectedObjects.Contains(inPickableObject))
+			{
+				_selectedObjects.Add(inPickableObject);
+				_gizmo.SelectObject(inPickableObject.transform);
+				inPickableObject.SetSelected(true);
+			}
+			else
+			{
+				_selectedObjects.Remove(inPickableObject);
+				_gizmo.DeselectObject(inPickableObject.transform);
+				inPickableObject.SetSelected(false);
+			}
 		}
 
-		_selectedObject = inPickableObject;
+		if(_selectedObjects.Count > 0)
+		{
+			_gizmo.Show();
+		}
+		else
+		{
+			_gizmo.Hide();
+		}
 	}
 }
