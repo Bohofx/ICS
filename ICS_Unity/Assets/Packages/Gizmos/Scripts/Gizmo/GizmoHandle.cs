@@ -141,7 +141,7 @@ public class GizmoHandle : MonoBehaviour
 						}
 						else
 						{
-							float amountMoved = UtilitiesHandles.CalcLineTranslation(_startDragMousePosition, Input.mousePosition, _startDragSelectedCenter, constraintDir, Gizmo.transform.localToWorldMatrix);
+							float amountMoved = UtilitiesHandles.CalcLineTranslation(_startDragMousePosition, Input.mousePosition, _startDragSelectedCenter, constraintDir, Matrix4x4.identity);
 							Vector3 newPosition = _startDragSelectedCenter + amountMoved * constraintDir;
 							frameDelta = newPosition - _startDragSelectedCenter;
 
