@@ -33,6 +33,17 @@ public class Gizmo : Singleton<Gizmo>
 	[SerializeField]
 	float _scaleFactor = 0.1f;
 
+	public enum TranslationCalculationMode
+	{
+		MouseDelta,
+		HandleUtility
+	}
+
+	[SerializeField]
+	TranslationCalculationMode _translationMode = TranslationCalculationMode.MouseDelta;
+	public TranslationCalculationMode TranslationMode
+	{ get { return _translationMode; } set { _translationMode = value; } }
+
 	public List<Transform> Selected;
 	public int SelectedCount
 	{ get { return Selected.Count; } }

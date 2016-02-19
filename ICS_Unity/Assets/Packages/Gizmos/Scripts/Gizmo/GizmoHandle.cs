@@ -22,6 +22,9 @@ public class GizmoHandle : MonoBehaviour
 	MoveObjectCommand _moveObjectCommand;
 
 	Vector3 _worldDelta;
+	
+	Vector3 _startDragMousePosition;
+	Vector3 _startDragSelectedCenter;
 
     void Awake()
     {
@@ -50,6 +53,8 @@ public class GizmoHandle : MonoBehaviour
 		{
 			case GizmoTools.Position:
 				_moveObjectCommand = new MoveObjectCommand(Gizmo.Selected);
+				_startDragMousePosition = Input.mousePosition;
+				_startDragSelectedCenter = Gizmo.GetBoundsForSelected().center;
 				_worldDelta = Vector3.zero;
 				break;
 			default:
@@ -97,28 +102,18 @@ public class GizmoHandle : MonoBehaviour
 					delta *= MoveSensitivity;
 					horz *= MoveSensitivity;
 					vert *= MoveSensitivity;
+
+					Vector3 constraintDir = Vector3.zero;
 					switch(Axis)
 					{
 						case GizmoAxis.X:
-							frameDelta = Vector3.right * delta;
-							foreach(var obj in Gizmo.Selected)
-							{
-								obj.Translate(frameDelta, Space.World);
-							}
+							constraintDir = Vector3.right;
 							break;
 						case GizmoAxis.Y:
-							frameDelta = Vector3.up * delta;
-							foreach(var obj in Gizmo.Selected)
-							{
-								obj.Translate(frameDelta, Space.World);
-							}
+							constraintDir = Vector3.up;
 							break;
 						case GizmoAxis.Z:
-							frameDelta = Vector3.forward * delta;
-							foreach(var obj in Gizmo.Selected)
-							{
-								obj.Translate(frameDelta, Space.World);
-							}
+							constraintDir = Vector3.forward;
 							break;
 						case GizmoAxis.Center:
 							// Based on the camera position we need to either move X horizontal or vertical / vice versa with Z
@@ -131,6 +126,32 @@ public class GizmoHandle : MonoBehaviour
 								obj.Translate(zDelta, Space.World);
 							}
 							break;
+					}
+
+					if(constraintDir.sqrMagnitude > 0f)
+					{
+						if(Gizmo.TranslationMode == Gizmo.TranslationCalculationMode.MouseDelta)
+						{
+							frameDelta = constraintDir * delta;
+							foreach(var obj in Gizmo.Selected)
+							{
+								obj.Translate(frameDelta, Space.World);
+							}
+							_worldDelta += frameDelta;
+						}
+						else
+						{
+							float amountMoved = UtilitiesHandles.CalcLineTranslation(_startDragMousePosition, Input.mousePosition, _startDragSelectedCenter, constraintDir, Gizmo.transform.localToWorldMatrix);
+							Vector3 newPosition = _startDragSelectedCenter + amountMoved * constraintDir;
+							frameDelta = newPosition - _startDragSelectedCenter;
+
+							// Remove delta offset from previous frame, then add this frame's.
+							foreach(var obj in Gizmo.Selected)
+							{
+								obj.Translate(-_worldDelta + frameDelta, Space.World);
+							}
+							_worldDelta = frameDelta;
+						}
 					}
 					break;
 
@@ -185,8 +206,6 @@ public class GizmoHandle : MonoBehaviour
 					break;
 			}
 		}
-
-		_worldDelta += frameDelta;
 	}
 
     public void SetActive(bool active)
