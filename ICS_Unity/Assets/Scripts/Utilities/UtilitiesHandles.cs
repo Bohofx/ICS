@@ -35,8 +35,8 @@ public static class UtilitiesHandles
 		{
 			return 0f;
 		}
-		x.y = -x.y;
-		x2.y = -x2.y;
+		//x.y = -x.y;
+		//x2.y = -x2.y;
 		float parametrization = GetParametrization(x2, vector2, vector3);
 		float parametrization2 = GetParametrization(x, vector2, vector3);
 		return (parametrization2 - parametrization) * num;
