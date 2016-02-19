@@ -29,6 +29,34 @@ public class CreatableObjectDropdown : MonoBehaviour
 		}
 	}
 
+	void Update()
+	{
+		for(int i = 0; i < _assetsToSpawn.Length; ++i)
+		{
+			KeyCode keyCode = KeyCode.None;
+			switch(i)
+			{
+				case 0:
+					keyCode = KeyCode.Alpha1;
+					break;
+				case 1:
+					keyCode = KeyCode.Alpha2;
+					break;
+				case 2:
+					keyCode = KeyCode.Alpha3;
+					break;
+				case 3:
+					keyCode = KeyCode.Alpha4;
+					break;
+			}
+
+			if(Input.GetKeyDown(keyCode))
+			{
+				SpawnInstance(i);
+			}
+		}
+	}
+
 	void SpawnInstance(int index)
 	{
 		Ray ray = Camera.main.ViewportPointToRay(new Vector2(.5f, .5f));
